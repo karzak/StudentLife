@@ -39,3 +39,9 @@ cd ./scripts
 wget https://raw.githubusercontent.com/karzak/StudentLife/master/processing_sesnor_data.py
 wget https://raw.githubusercontent.com/karzak/StudentLife/master/loading_survey_data.py
 wget https://raw.githubusercontent.com/karzak/StudentLife/master/modeling.py
+chmod +x processing_sensor_data.py
+chmod +x loading_survey_data.py
+chmod +x modeling.py
+python processing_sensor_data.py
+python loading_survey_data.py
+python modeling.py
