@@ -58,5 +58,4 @@ python processing_sensor_data.py
 python loading_survey_data.py
 python exploratory_analysis.py
 ./loading_tables.sh
-python building_spark_model.py
-
+spark-submit --packages com.databricks:spark-csv_2.10:1.3.0 building_spark_model.py
