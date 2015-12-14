@@ -36,7 +36,7 @@ mkdir grades
 cd ..
 mkdir scripts
 cd ./scripts
-wget https://raw.githubusercontent.com/karzak/StudentLife/master/processing_sesnor_data.py
+wget https://raw.githubusercontent.com/karzak/StudentLife/master/processing_sensor_data.py
 wget https://raw.githubusercontent.com/karzak/StudentLife/master/loading_survey_data.py
 wget https://raw.githubusercontent.com/karzak/StudentLife/master/modeling.py
 chmod +x processing_sensor_data.py
