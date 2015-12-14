@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import gc, glob, os, datetime, dateutil
 
-
 print datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 pd.options.mode.chained_assignment = None
 os.chdir('/data/final/dataset/sensing/activity')
@@ -102,6 +101,7 @@ conversation['start'] = pd.to_datetime(conversation['start_timestamp'], unit = '
 conversation['end'] = pd.to_datetime(conversation[' end_timestamp'], unit = 's')
 conversation['duration'] = (conversation['end']- conversation['start'])/np.timedelta64(1,'s')
 conversation['date'] = pd.DatetimeIndex(conversation['start']).date
+conversation['start_hour'] = pd.DatetimeIndex(conversation['start']).hour
 print 'saving conversation'
 print datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 conversation.to_csv("/data/final/dataset/tables/conversation/conversation.csv", index =False)
@@ -132,6 +132,9 @@ dark['date'] = pd.DatetimeIndex(dark['start_time']).date
 print 'saving dark'
 print datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 dark.to_csv("/data/final/dataset/tables/dark/dark.csv", index = False)
+
+day_talk = conversation.loc[((conversation.start_hour >= 9) | (conversation.start_hour < 18))]
+day_talk.to_csv('/data/final/dataset/tables/day_talk/day_talk.csv', index = False)
 
 bedtime = dark.loc[((dark.start_hour >= 20) | (dark.start_hour < 6)) & (dark.duration >= 180.0)]
 def early_to_bed(c):
@@ -311,7 +314,7 @@ def event_delta(c):
 df_study['event_delta'] = df_study.apply(event_delta, axis = 1)
 df_study['event_delta'] = (df_study['event_delta']/np.timedelta64(1, 'm'))
 df_study['date'] = pd.DatetimeIndex(df_study['time']).date
-df_study.to_csv('/data/final/dataset/tables/study/study.csv')
+#df_study.to_csv('/data/final/dataset/tables/study/study.csv')
 dropcols = ['timestamp','time', 'delta', 'shift']
 cols = [c for c in df_study.columns.tolist() if c not in dropcols]
 df_study_events = df_study[cols]
@@ -334,9 +337,10 @@ df_study_events = pd.read_csv('/data/final/dataset/tables/study_events/study_eve
 index_col = None, header = 0)
 audio_iterator = pd.read_csv('/data/final/dataset/tables/audio/audio.csv',
 index_col = None, header = 0, iterator = True, chunksize = 10000)
+ids = np.unique(df_study_events['uid'].values.ravel()).tolist()
+print datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 audio = pd.concat([chunk for chunk in audio_iterator])
 dflist = []
-ids = np.unique(df_study_events['uid'].values.ravel()).tolist()
 for i in ids:
     df = df_study_events.loc[df_study_events['uid'] == i]
     ef = audio.loc[audio['uid'] == i]
@@ -351,5 +355,4 @@ focus = noise.groupby(['study_event','uid']).mean()
 focus.reset_index(inplace = True)
 print np.unique(focus['uid'].values.ravel())
 focus.to_csv('/data/final/dataset/tables/study_quiteness/study_quiteness.csv', index = False)
-
 

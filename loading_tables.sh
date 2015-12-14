@@ -1,9 +1,11 @@
 hdfs dfs -mkdir /user/w205/tables
 hdfs dfs -mkdir /user/w205/tables/activity
 hdfs dfs -mkdir /user/w205/tables/audio
+hdfs dfs -mkdir /user/w205/tables/bedtime
 hdfs dfs -mkdir /user/w205/tables/bluetooth
 hdfs dfs -mkdir /user/w205/tables/conversation
 hdfs dfs -mkdir /user/w205/tables/dark
+hdfs dfs -mkdir /user/w205/tables/day_talk
 hdfs dfs -mkdir /user/w205/tables/gps
 hdfs dfs -mkdir /user/w205/tables/grades
 hdfs dfs -mkdir /user/w205/tables/phonecharge
@@ -28,9 +30,11 @@ hdfs dfs -mkdir /user/w205/tables/phq/post
 
 hdfs dfs -copyFromLocal '/data/final/dataset/tables/activity/activity.csv' '/user/w205/tables/activity/activity.csv'
 hdfs dfs -copyFromLocal '/data/final/dataset/tables/audio/audio.csv' '/user/w205/tables/audio/audio.csv'
+hdfs dfs -copyFromLocal '/data/final/dataset/tables/bedtime/bedtime.csv' '/user/w205/tables/bedtime/bedtime.csv'
 hdfs dfs -copyFromLocal '/data/final/dataset/tables/bluetooth/bluetooth.csv' '/user/w205/tables/bluetooth/bluetooth.csv'
 hdfs dfs -copyFromLocal '/data/final/dataset/tables/conversation/conversation.csv' '/user/w205/tables/conversation/conversation.csv'
 hdfs dfs -copyFromLocal '/data/final/dataset/tables/dark/dark.csv' '/user/w205/tables/dark/dark.csv'
+hdfs dfs -copyFromLocal '/data/final/dataset/tables/day_talk/day_talk.csv' '/user/w205/tables/day_talk/day_talk.csv'
 hdfs dfs -copyFromLocal '/data/final/dataset/tables/gps/gps.csv' '/user/w205/tables/gps/gps.csv'
 hdfs dfs -copyFromLocal '/data/final/dataset/tables/grades/grades.csv' '/user/w205/tables/grades/grades.csv'
 hdfs dfs -copyFromLocal '/data/final/dataset/tables/phonecharge/phonecharge.csv' '/user/w205/tables/phonecharge/phonecharge.csv'
@@ -48,5 +52,6 @@ hdfs dfs -copyFromLocal '/data/final/dataset/tables/EMA/Sleep/SleepEMA.csv' '/us
 hdfs dfs -copyFromLocal '/data/final/dataset/tables/EMA/Social/social_ema_response.csv' '/user/w205/tables/EMA/social/social_ema.csv'
 hdfs dfs -copyFromLocal '/data/final/dataset/tables/EMA/Stress/Stress_EMA.csv' '/user/w205/tables/EMA/stress/stress_ema.csv'
 
-hdfs dfs -copyFromLocal '/data/final/dataset/tables/phq/post/phq_post.csv' '/user/w205/tables/phq/post/phq_post.csv'
+hdfs dfs -copyFromLocal '/data/final/datcd aset/tables/phq/post/phq_post.csv' '/user/w205/tables/phq/post/phq_post.csv'
 hdfs dfs -copyFromLocal '/data/final/dataset/tables/phq/pre/phq_pre.csv' '/user/w205/tables/phq/pre/phq_pre.csv'
+

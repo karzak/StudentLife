@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import os, glob, gc, dateutil
 
+pd.options.mode.chained_assignment = None
 os.chdir(r'/data/final/dataset/tables/activity')
 activity_iterator = pd.read_csv(r'/data/final/dataset/tables/activity/activity.csv', index_col = None, header = 0, iterator = True, chunksize = 10000)
 activity_piece = [x.groupby('uid')[' activity inference'].agg(['sum', 'count']) for x in activity_iterator]
@@ -89,6 +90,21 @@ conversation_daily = conversation_daily.reset_index()
 conversation_daily = conversation_daily.drop(['start_timestamp', ' end_timestamp'], axis = 1)
 os.chdir(r'/data/StudentLife/Model Tables')
 conversation_daily.to_csv('convo_daily_ave.csv' ,index = False)
+
+day_talk = pd.read_csv('/data/final/dataset/tables/day_talk/day_talk.csv', index_col = None, header = 0)
+daily_agg = day_talk.groupby('uid').mean()
+daily_agg = daily_agg.drop(['start_timestamp', ' end_timestamp','start_hour'], axis = 1)
+daily_agg.reset_index(inplace = True)
+os.chdir(r'/data/StudentLife/Model Tables')
+daily_agg.to_csv('day_convo.csv' ,index = False)
+
+day_talk_daily = day_talk.groupby(['date','uid']).mean()
+day_talk_daily.reset_index(inplace=True)
+day_talk_daily = day_talk_daily.groupby('uid').mean()
+day_talk_daily = day_talk_daily.reset_index()
+day_talk_daily = day_talk_daily.drop(['start_timestamp', ' end_timestamp','start_hour'], axis = 1)
+os.chdir(r'/data/StudentLife/Model Tables')
+day_talk_daily.to_csv('day_ave_convo.csv' ,index = False)
 
 os.chdir(r'/data/final/dataset/tables/dark')
 dark = pd.read_csv(r'/data/final/dataset/tables/dark/dark.csv')
@@ -231,5 +247,5 @@ model_vars = activity_agg.merge(audio_agg, on = 'uid').merge(
     socialema, on = 'uid').merge(
     stressema, on = 'uid')
 #shape = (37,28)
-model_vars.to_csv('/data/final/dataset/tables/model/model_vars.csv', index = False)
+model_vars.to_csv('/data/final/dataset/tables/Model_Tables/model_vars.csv', index = False)
 
