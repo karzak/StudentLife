@@ -2,9 +2,6 @@ import numpy as np
 import pandas as pd
 import gc, glob, os, datetime, dateutil
 
-import numpy as np
-import pandas as pd
-import gc, glob, os, datetime, dateutil
 
 print datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 pd.options.mode.chained_assignment = None
@@ -337,16 +334,14 @@ df_study_events = pd.read_csv('/data/final/dataset/tables/study_events/study_eve
 index_col = None, header = 0)
 audio_iterator = pd.read_csv('/data/final/dataset/tables/audio/audio.csv',
 index_col = None, header = 0, iterator = True, chunksize = 10000)
-ids = np.unique(df_study_events['uid'].values.ravel()).tolist()
+audio = pd.concat([chunk for chunk in audio_iterator])
 dflist = []
+ids = np.unique(df_study_events['uid'].values.ravel()).tolist()
 for i in ids:
     df = df_study_events.loc[df_study_events['uid'] == i]
-    print 'reading audio'
-    print datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-    audio = pd.concat([chunk['uid'] == i for chunk in audio_iterator])
-    print audio.head()
+    ef = audio.loc[audio['uid'] == i]
     for index, row in df.iterrows():
-        ff = audio.loc[(audio['time'] >= row['event_start']) & (audio['time'] <= row['event_end'])]
+        ff = ef.loc[(ef['time'] >= row['event_start']) & (ef['time'] <= row['event_end'])]
         ff['study_event'] = row['study_event']
         dflist.append(ff)
 del audio
@@ -356,4 +351,5 @@ focus = noise.groupby(['study_event','uid']).mean()
 focus.reset_index(inplace = True)
 print np.unique(focus['uid'].values.ravel())
 focus.to_csv('/data/final/dataset/tables/study_quiteness/study_quiteness.csv', index = False)
+
 
