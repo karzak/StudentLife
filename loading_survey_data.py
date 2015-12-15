@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import gc, glob, os, datetime, dateutil
-
+pd.options.mode.chained_assignment = None
 #Loading survey response data
 os.chdir('/data/final/dataset/EMA/response/Activity')
 filelist = []
