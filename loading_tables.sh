@@ -52,6 +52,6 @@ hdfs dfs -copyFromLocal '/data/final/dataset/tables/EMA/Sleep/SleepEMA.csv' '/us
 hdfs dfs -copyFromLocal '/data/final/dataset/tables/EMA/Social/social_ema_response.csv' '/user/w205/tables/EMA/social/social_ema.csv'
 hdfs dfs -copyFromLocal '/data/final/dataset/tables/EMA/Stress/Stress_EMA.csv' '/user/w205/tables/EMA/stress/stress_ema.csv'
 
-hdfs dfs -copyFromLocal '/data/final/datcd aset/tables/phq/post/phq_post.csv' '/user/w205/tables/phq/post/phq_post.csv'
+hdfs dfs -copyFromLocal '/data/final/dataset/tables/phq/post/phq_post.csv' '/user/w205/tables/phq/post/phq_post.csv'
 hdfs dfs -copyFromLocal '/data/final/dataset/tables/phq/pre/phq_pre.csv' '/user/w205/tables/phq/pre/phq_pre.csv'
 
