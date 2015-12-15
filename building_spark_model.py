@@ -69,12 +69,14 @@ vals1 = np.repeat(val1, len(mood_missing), axis = 0).tolist()
 ix1 = np.arange(len(moodema['uid'])+1, len(moodema['uid'])+len(vals1)+1)
 mood_adds = pd.DataFrame({'uid': mood_missing,'sadness_level': vals1}, index = ix1)
 
+#mean imputing for mood_ema
 sleep_missing = [x for x in all_ids if x not in sleep_id]
 val2 = sleepema['sleep_hours_factor'].mean()
 vals2 = np.repeat(val2, len(sleep_missing), axis = 0).tolist()
 ix2 = np.arange(len(sleepema['uid'])+1, len(sleepema['uid'])+len(vals2)+1)
 sleep_adds = pd.DataFrame({'uid': sleep_missing, 'sleep_hours_factor': vals2}, index = ix2)
 
+#mean imputing for study sensor data
 study_missing = [x for x in all_ids if x not in study_id]
 val3 = study_agg['ave_study_time'].mean()
 vals3 = np.repeat(val3, len(study_missing), axis= 0).tolist()
@@ -101,11 +103,14 @@ mvars = mood_full.merge(study_full, on='uid').merge(
     phq_pre, on='uid')
 mvars = mvars[~mvars.uid.isin(repeaters)]
 
+#create OLS regression model
 X2 = mvars[['sadness_level', 'ave_study_time', 'sleep_hours_factor', 'days_skipped_exercise']]
 y = mvars[['dep_risk']]
 X2 = sm.add_constant(X2)
 est2 = sm.OLS(y, X2).fit()
-
+#sanity check to make sure model output is correct
+est2.summary()
+#Run simulated train/test splits of the model and calculate overall accuracy. 
 nums = np.random.randint(100000, size =10000)
 accuracy = []
 averages = []
@@ -122,13 +127,17 @@ for i in nums:
     pred_est = (2 * (DepressionModel_predictions > 0).astype(int)) - 1
     accuracy.append(sum(pred_est == yts)/len(yts))
     averages.append(dict(zip(test.uid.values.tolist(),DepressionModel_predictions)))
+#calculate average value for each participant and use that to make prediction. 
 ids = mvars.uid.values.tolist()
 predicted_vals = []
 for i in ids:
     predicted_vals.append(sum([d[i] for d in averages if i in d])/len([d[i] for d in averages if i in d]))
 mvars['predicted_dep_risk'] = [((2 * int(i > 0)) -1) for i in predicted_vals]
+#Output model table
 mvars.to_csv('/data/final/dataset/tables/model_output/Depression_Risk_Model_Output.csv', index = False)
 
+#Dean's list model 
+#Loading tables
 sleepema = sqlContext.read.format('com.databricks.spark.csv').options(header='true', inferschema = 'true').load('/user/w205/tables/EMA/sleep/sleep_ema.csv')
 sleepema = sleepema.toPandas()
 sleepema = sleepema[['uid', 'sleep_hours_factor']]
@@ -146,6 +155,7 @@ activity_daily.reset_index(inplace=True)
 activity_daily.columns = ('uid', 'timestamp', 'daily_act_inf')
 activity_daily = activity_daily[['uid', 'daily_act_inf']]
 
+#mean imputing
 act_id = pd.unique(activity_daily.uid).tolist()
 sleep_id = pd.unique(sleepema.uid).tolist()
 all_ids = pd.unique(act_id + sleep_id).tolist()
@@ -155,12 +165,12 @@ val2 = sleepema['sleep_hours_factor'].mean()
 vals2 = np.repeat(val2, len(sleep_missing), axis = 0).tolist()
 ix2 = np.arange(len(sleepema['uid'])+1, len(sleepema['uid'])+len(vals2)+1)
 sleep_adds = pd.DataFrame({'uid': sleep_missing, 'sleep_hours_factor': vals2}, index = ix2)
-
+#add values
 sleep_full = pd.concat([sleepema, sleep_adds])
 dvars = sleep_full.merge(activity_daily, on='uid').merge(
     grades, on='uid')
 
-
+#make the model
 X0 = dvars[['sleep_hours_factor', 'daily_act_inf']]
 y = dvars[['deans_list']]
 X0 = sm.add_constant(X0)
@@ -168,6 +178,7 @@ est0 = sm.OLS(y, X0).fit()
 #sanity check to make sure model output is correct
 est0.summary()
 
+#Run similuations of train test split and check accuracy. 
 nums = np.random.randint(100000, size =10000)
 accuracy = []
 averages = []
@@ -187,6 +198,7 @@ for i in nums:
     averages.append(dict(zip(test.uid.values.tolist(),GradesModel_predictions)))
 print("Average Model Accuracy of 10,000 simulations: {}%".format(round((sum(accuracy)/len(accuracy))*100, 2)))
 
+#Calculate each participants average value and use that to make predictions. 
 ids = dvars.uid.values.tolist()
 predicted_vals = []
 for i in ids:
