@@ -3,9 +3,15 @@ import numpy as np
 import pandas as pd
 import os, glob, gc, dateutil
 
+#To get an idea of which variables will be used in the model, we will read in each table and compute output variables.
+#Shape denotes how many participants are in each outcome variable. 
+#Overall average = groupby('uid')
+#Daily average = groupby['date', 'uid'] then groupby('uid')
 pd.options.mode.chained_assignment = None
+#Read activity table and calculate average activity level and average daily activity level
 os.chdir(r'/data/final/dataset/tables/activity')
 activity_iterator = pd.read_csv(r'/data/final/dataset/tables/activity/activity.csv', index_col = None, header = 0, iterator = True, chunksize = 10000)
+#Overall Average
 activity_piece = [x.groupby('uid')[' activity inference'].agg(['sum', 'count']) for x in activity_iterator]
 activity_agg = pd.concat(activity_piece).groupby(level=0).sum()
 activity_agg.reset_index(inplace =True)
@@ -13,10 +19,13 @@ activity_agg[' activity inference'] = activity_agg['sum']/activity_agg['count']
 activity_agg = activity_agg.drop(['sum', 'count'], axis = 1)
 #shape = (49, 2)
 os.chdir(r'/data/StudentLife/Model Tables')
+#output to table for interactive exploratory analysis with iPythonNotebook
 activity_agg.to_csv('activity.csv' ,index = False)
 del activity_piece
 del activity_iterator
+
 activity_iterator = pd.read_csv(r'/data/final/dataset/tables/activity/activity.csv', index_col = None, header = 0, iterator = True, chunksize = 10000)
+#Daily Average
 activity_piece = [x.groupby(['date', 'uid'])[' activity inference'].agg(['sum', 'count']) for x in activity_iterator]
 activity_daily = pd.concat(activity_piece).groupby(level=[0,1]).sum()
 activity_daily.reset_index(inplace =True)
@@ -30,6 +39,7 @@ del activity_piece
 del activity_iterator
 gc.collect()
 
+#Calculate average audio level and average daily audio level
 os.chdir(r'/data/final/dataset/tables/audio')
 audio_iterator = pd.read_csv('/data/final/dataset/tables/audio/audio.csv',
 index_col = None, header = 0, iterator = True, chunksize = 10000)
@@ -57,6 +67,7 @@ audio_daily_ave.to_csv('audio_daily_ave.csv', index = False)
 del audio_piece
 del audio_iterator
 
+#Calculate average daily bedtime score and average inferred sleep length
 os.chdir(r'/data/final/dataset/tables/bedtime')
 bedtime = pd.read_csv('/data/final/dataset/tables/bedtime/bedtime.csv', index_col = None, header = 0)
 bedtime_agg = bedtime.groupby('uid').mean()
@@ -74,7 +85,7 @@ os.chdir(r'/data/StudentLife/Model Tables')
 bedtime_daily.to_csv('bedtime_daily_ave.csv', index = False)
 #shape = (49,3)
 
-
+#Calculate average conversation duration and average daily conversation duration
 os.chdir(r'/data/final/dataset/tables/conversation')
 conversation = pd.read_csv(r'/data/final/dataset/tables/conversation/conversation.csv', index_col = None, header = 0)
 conversation_agg = conversation.groupby('uid').mean()
@@ -91,6 +102,7 @@ conversation_daily = conversation_daily.drop(['start_timestamp', ' end_timestamp
 os.chdir(r'/data/StudentLife/Model Tables')
 conversation_daily.to_csv('convo_daily_ave.csv' ,index = False)
 
+#Calculate daytime average daily conversation
 day_talk = pd.read_csv('/data/final/dataset/tables/day_talk/day_talk.csv', index_col = None, header = 0)
 daily_agg = day_talk.groupby('uid').mean()
 daily_agg = daily_agg.drop(['start_timestamp', ' end_timestamp','start_hour'], axis = 1)
@@ -106,6 +118,7 @@ day_talk_daily = day_talk_daily.drop(['start_timestamp', ' end_timestamp','start
 os.chdir(r'/data/StudentLife/Model Tables')
 day_talk_daily.to_csv('day_ave_convo.csv' ,index = False)
 
+#Calculate average darkness duration and average daily darkness duration
 os.chdir(r'/data/final/dataset/tables/dark')
 dark = pd.read_csv(r'/data/final/dataset/tables/dark/dark.csv')
 dark_agg = dark.groupby('uid').mean()
@@ -120,6 +133,7 @@ dark_daily = dark_daily.reset_index()
 os.chdir(r'/data/StudentLife/Model Tables')
 dark_daily.to_csv('dark_daily_ave.csv' ,index = False)
 
+#Calculate average phonecharge duration and average daily phonecharge duration
 os.chdir(r'/data/final/dataset/tables/phonecharge/')
 phonecharge = pd.read_csv(r'/data/final/dataset/tables/phonecharge/phonecharge.csv', index_col = None, header = 0)
 phonecharge_agg = phonecharge.groupby("uid").mean()
@@ -136,6 +150,7 @@ phonecharge_daily = phonecharge_daily.drop(['start', 'end'], axis = 1)
 os.chdir(r'/data/StudentLife/Model Tables')
 phonecharge_daily.to_csv('phonecharge_daily_ave.csv' ,index = False)
 
+#Calculate phonelock duration and average daily phonelock duration
 os.chdir(r'/data/final/dataset/tables/phonelock')
 phonelock = pd.read_csv(r'/data/final/dataset/tables/phonelock/phonelock.csv',index_col = None, header = 0)
 phonelock_daily = phonelock.groupby(['date','uid']).mean()
@@ -153,6 +168,7 @@ os.chdir(r'/data/StudentLife/Model Tables')
 phonelock_agg.to_csv('phonelock.csv' ,index = False)
 #shape =(49, 2)
 
+#Calculate average study time, number of days studied, and total time spent studying
 os.chdir(r'/data/final/dataset/tables/study_events')
 study_event = pd.read_csv('/data/final/dataset/tables/study_events/study_events.csv',index_col = None, header = 0)
 study_day = study_event.groupby('uid').count()
@@ -169,11 +185,13 @@ study_tot = study_event.groupby('uid').sum()
 study_tot.reset_index(inplace = True)
 study_tot.columns = ('uid', 'all_study_time')
 #shape = (46,2)
+#Merge output sense it's all the same participants
 study_habits = study_tot.merge(study_agg.merge(study_day),on = 'uid')
 os.chdir(r'/data/StudentLife/Model Tables')
 study_habits.to_csv('study_habits.csv' ,index = False)
 #shape = (46,4)
 
+#Calculate average noise level during study sessions
 os.chdir(r'/data/final/dataset/tables/study_quiteness')
 study_q = pd.read_csv(r'/data/final/dataset/tables/study_quiteness/study_quiteness.csv',index_col = None, header = 0)
 study_q_agg = study_q.groupby('uid').mean()
@@ -184,6 +202,7 @@ os.chdir(r'/data/StudentLife/Model Tables')
 study_q_agg.to_csv('study_quiet.csv' ,index = False)
 #shape = (43,2)
 
+#Calculate average activity level during study sessions
 os.chdir(r'/data/final/dataset/tables/study_stillness')
 study_s = pd.read_csv(r'/data/final/dataset/tables/study_stillness/study_stillness.csv',index_col = None, header = 0)
 study_s_agg = study_s.groupby('uid').mean()
@@ -199,6 +218,7 @@ os.chdir(r'/data/StudentLife/Model Tables')
 actema.to_csv('actema.csv' ,index = False)
 #shape = (46, 5)
 
+#Read in EMA Survey tables and output summary tables for exploratory analysis
 os.chdir(r'/data/final/dataset/tables/EMA/Exercise')
 exema = pd.read_csv(r'/data/final/dataset/tables/EMA/Exercise/Exercise_EMA.csv',index_col = None, header = 0)
 os.chdir(r'/data/StudentLife/Model Tables')
@@ -225,6 +245,7 @@ stressema = pd.read_csv(r'/data/final/dataset/tables/EMA/Stress/Stress_EMA.csv',
 #shape = (48, 2)
 os.chdir(r'/data/StudentLife/Model Tables')
 stressema.to_csv('stressema.csv' ,index = False)
+#Merge the tables to see total participants.
 model_vars = activity_agg.merge(audio_agg, on = 'uid').merge(
     activity_daily, on = 'uid').merge(
     audio_agg, on = 'uid').merge(
