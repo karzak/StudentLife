@@ -9,9 +9,12 @@ import numpy as np
 import statsmodels.api as sm
 
 #Note, you must first setup spark15 as your default spark
+#if spark is installed at /data/spark15
 #export SPARK=/data/spark15
 #export SPARK_HOME=$SPARK
 #export PATH=$SPARK/bin:$PATH
+#If spark is not configured to use the same python as numpy, pandas, ect edit the spark-env.sh file in the conf director
+#add the line 'export PYSPARK_PYTHON=/path/to/proper/python/installation
 #Finally, you must load pypark with the spark-csv package
 #pyspark  --packages com.databricks:spark-csv_2.10:1.3.0
 
@@ -127,6 +130,7 @@ for i in nums:
     pred_est = (2 * (DepressionModel_predictions > 0).astype(int)) - 1
     accuracy.append(sum(pred_est == yts)/len(yts))
     averages.append(dict(zip(test.uid.values.tolist(),DepressionModel_predictions)))
+print("Average Depression Risk Model Accuracy of 10,000 simulations: {}%".format(round((sum(accuracy)/len(accuracy))*100, 2)))
 #calculate average value for each participant and use that to make prediction. 
 ids = mvars.uid.values.tolist()
 predicted_vals = []
@@ -196,7 +200,7 @@ for i in nums:
     accuracy.append(sum(pred_est == yts)/len(yts))
     accuracy.append(sum(pred_est == yts)/len(yts))
     averages.append(dict(zip(test.uid.values.tolist(),GradesModel_predictions)))
-print("Average Model Accuracy of 10,000 simulations: {}%".format(round((sum(accuracy)/len(accuracy))*100, 2)))
+print("Average Dean's List Placement Model Accuracy of 10,000 simulations: {}%".format(round((sum(accuracy)/len(accuracy))*100, 2)))
 
 #Calculate each participants average value and use that to make predictions. 
 ids = dvars.uid.values.tolist()
