@@ -250,8 +250,8 @@ phonelock['start_time'] = pd.to_datetime(phonelock["start"], unit = 's')
 phonelock['end_time'] = pd.to_datetime(phonelock["end"], unit = 's')
 phonelock['duration'] = (phonelock['end_time'] - phonelock.start_time)/np.timedelta64(1,'s')
 phonelock['date'] = pd.DatetimeIndex(phonelock['start_time']).date
-print phonelock.head()
 print datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+print 'saving phonelock'
 phonelock.to_csv('/data/final/dataset/tables/phonelock/phonelock.csv', index = False)
 
 #Wifi sensing data
@@ -359,7 +359,6 @@ index_col = None, header = 0)
 audio_iterator = pd.read_csv('/data/final/dataset/tables/audio/audio.csv',
 index_col = None, header = 0, iterator = True, chunksize = 10000)
 ids = np.unique(df_study_events['uid'].values.ravel()).tolist()
-print datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 audio = pd.concat([chunk for chunk in audio_iterator])
 dflist = []
 #For each student
@@ -380,6 +379,7 @@ noise = pd.concat(dflist)
 focus = noise.groupby(['study_event','uid']).mean()
 focus.reset_index(inplace = True)
 print 'saving study quiteness'
+print datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 focus.to_csv('/data/final/dataset/tables/study_quiteness/study_quiteness.csv', index = False)
 
 #Obtaining average motion during study events
