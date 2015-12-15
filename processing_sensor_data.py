@@ -1,10 +1,18 @@
 import numpy as np
 import pandas as pd
 import gc, glob, os, datetime, dateutil
+#The general structure will follow:
+#Read each file, get the uid based on the file name
+#Create a list of dateframes from the files
+#Merge the files
+#Calculate additional columns
+#For large files, files are read and columns are calculated by chunk.
 
+#Activity sensing data
 print datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 pd.options.mode.chained_assignment = None
 os.chdir('/data/final/dataset/sensing/activity')
+#place all csv files and their corresponding ids in a list
 filelist = []
 for files in glob.glob("*.csv"):
     filelist.append(files)
@@ -12,6 +20,7 @@ idlist = []
 for i in filelist:
     x = (i.split("_")[1]).split(".")[0]
     idlist.append(x)
+#read each csv into a pandas dataframe and add the id as a column
 dflist = []
 for x in range(len(filelist)):
     iter_csv = pd.read_csv(filelist[x], index_col=None, header = 0, iterator = True, chunksize = 1000)
@@ -21,6 +30,7 @@ for x in range(len(filelist)):
     df['time'] =  pd.to_datetime(df['timestamp'], unit = 's')
     df['date'] = pd.DatetimeIndex(df['time']).date
     dflist.append(df)
+#merge the dataframes into the output dataframe
 activity = pd.concat(dflist)
 del dflist
 gc.collect()
@@ -30,6 +40,7 @@ activity.to_csv('/data/final/dataset/tables/activity/activity.csv', index = Fals
 del activity
 gc.collect()
 
+#Audio sensing data
 os.chdir('/data/final/dataset/sensing/audio')
 filelist = []
 for files in glob.glob("*.csv"):
@@ -56,6 +67,7 @@ audio.to_csv("/data/final/dataset/tables/audio/audio.csv", index = False)
 del audio
 gc.collect()
 
+#Bluetooth sensing data
 pd.options.mode.chained_assignment = None
 print datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 os.chdir('/data/final/dataset/sensing/bluetooth')
@@ -78,24 +90,21 @@ print 'saving bluethooth'
 print datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 bluetooth.to_csv('/data/final/dataset/tables/bluetooth/bluetooth.csv', index = False)
 
+#Conversation sensing data
 os.chdir('/data/final/dataset/sensing/conversation')
 filelist = []
-#place all csv files and their corresponding ids in a list
 for files in glob.glob("*.csv"):
     filelist.append(files)
     idlist = []
 for i in filelist:
     x = (i.split("_")[1]).split(".")[0]
     idlist.append(x)
-
-#read each csv into a pandas dataframe and add the id as a column
 dflist = []
 for x in filelist:
     df = pd.read_csv(x, index_col=None, header = 0)
     dflist.append(df)
 for x in range(len(dflist)):
     dflist[x]['uid'] = idlist[x]
-#merge the dataframes into the output dataframe
 conversation = pd.concat(dflist)
 conversation['start'] = pd.to_datetime(conversation['start_timestamp'], unit = 's')
 conversation['end'] = pd.to_datetime(conversation[' end_timestamp'], unit = 's')
@@ -106,6 +115,7 @@ print 'saving conversation'
 print datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 conversation.to_csv("/data/final/dataset/tables/conversation/conversation.csv", index =False)
 
+#dark sesning data
 os.chdir('/data/final/dataset/sensing/dark')
 filelist = []
 for files in glob.glob("*.csv"):
@@ -133,10 +143,13 @@ print 'saving dark'
 print datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 dark.to_csv("/data/final/dataset/tables/dark/dark.csv", index = False)
 
+#Filter conversation to 'daytime' epoch
 day_talk = conversation.loc[((conversation.start_hour >= 9) | (conversation.start_hour < 18))]
 day_talk.to_csv('/data/final/dataset/tables/day_talk/day_talk.csv', index = False)
 
+#Filter dark to 'nighttime' epoch and filter for events longer than 180 min (sleeping)
 bedtime = dark.loc[((dark.start_hour >= 20) | (dark.start_hour < 6)) & (dark.duration >= 180.0)]
+#Create a factor variable based on when students go to bed
 def early_to_bed(c):
     if c['start_hour'] == 20:
         return 1
@@ -164,6 +177,7 @@ bedtime['bedtime_early'] = bedtime.apply(early_to_bed, axis = 1)
 bedtime = bedtime.rename(columns = {'duration': 'night_duration'})
 bedtime.to_csv('/data/final/dataset/tables/bedtime/bedtime.csv')
 
+#Gps sensing data
 os.chdir('/data/final/dataset/sensing/gps')
 filelist = []
 for files in glob.glob("*.csv"):
@@ -187,6 +201,8 @@ print 'saving gps'
 print datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 gps.to_csv('/data/final/dataset/tables/gps/gps.csv', index = False)
 del gps
+
+#Phone charge sensing data
 os.chdir('/data/final/dataset/sensing/phonecharge')
 filelist = []
 for files in glob.glob("*.csv"):
@@ -212,6 +228,7 @@ print 'saving phonecharge'
 print datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 phonecharge.to_csv('/data/final/dataset/tables/phonecharge/phonecharge.csv', index = False)
 
+#Phonelock sensing data
 os.chdir('/data/final/dataset/sensing/phonelock')
 filelist = []
 for files in glob.glob("*.csv"):
@@ -237,6 +254,7 @@ print phonelock.head()
 print datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 phonelock.to_csv('/data/final/dataset/tables/phonelock/phonelock.csv', index = False)
 
+#Wifi sensing data
 os.chdir('/data/final/dataset/sensing/wifi')
 filelist = []
 for files in glob.glob("*.csv"):
@@ -257,6 +275,7 @@ print datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 wifi.to_csv('/data/final/dataset/tables/wifi/wifi.csv', index = False)
 del wifi
 
+#Wifi_location sensing data
 os.chdir('/data/final/dataset/sensing/wifi_location')
 filelist = []
 for files in glob.glob("*.csv"):
@@ -305,7 +324,7 @@ def study_events(c):
             return i
 df_study['shift'] = df_study['location'].shift().fillna(df_study['location'])
 df_study['study_event'] = df_study.apply(study_events, axis= 1)
-
+#filter any weird values
 def event_delta(c):
     if c['delta'] < datetime.timedelta(minutes = 20):
         return c['delta']
@@ -321,16 +340,18 @@ df_study_events = df_study[cols]
 df_study_events = df_study_events.groupby(['study_event', 'date', 'uid']).sum().reset_index()
 df_study_events["event_start"] = np.nan
 df_study_events["event_end"] = np.nan
-
+#Get the start time and end time of each study session
 for i in range(1,len(df_study_events['study_event'])):
     df_study_events['event_start'][i-1] = df_study.loc[df_study['study_event'] == i]['time'].min()
     df_study_events['event_end'][i-1] = df_study.loc[df_study['study_event'] == i]['time'].max()
 df_study_events['event_delta'] = np.round(df_study_events['event_delta'], 0)
+#Filter for study events lasting 20 or more minuets
 df_study_events = df_study_events.loc[df_study_events['event_delta'] >= 20]
 print 'saving study_events'
 print datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 df_study_events.to_csv('/data/final/dataset/tables/study_events/study_events.csv', index = False)
 del df_study_events
+
 
 #Obtaining average noise level during study events
 df_study_events = pd.read_csv('/data/final/dataset/tables/study_events/study_events.csv',
@@ -341,18 +362,46 @@ ids = np.unique(df_study_events['uid'].values.ravel()).tolist()
 print datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 audio = pd.concat([chunk for chunk in audio_iterator])
 dflist = []
+#For each student
 for i in ids:
+    #filter data frame for that student
     df = df_study_events.loc[df_study_events['uid'] == i]
     ef = audio.loc[audio['uid'] == i]
+    #Select rows from audio that are during a study event. Append each row to a list
     for index, row in df.iterrows():
         ff = ef.loc[(ef['time'] >= row['event_start']) & (ef['time'] <= row['event_end'])]
         ff['study_event'] = row['study_event']
         dflist.append(ff)
 del audio
 gc.collect()
+#Merge the dataframe list
 noise = pd.concat(dflist)
+#Obtain average noise levels during study events.
 focus = noise.groupby(['study_event','uid']).mean()
 focus.reset_index(inplace = True)
-print np.unique(focus['uid'].values.ravel())
+print 'saving study quiteness'
 focus.to_csv('/data/final/dataset/tables/study_quiteness/study_quiteness.csv', index = False)
+
+#Obtaining average motion during study events
+df_study_events = pd.read_csv('/data/final/dataset/tables/study_events/study_events.csv',
+index_col = None, header = 0)
+activity_iterator = pd.read_csv('/data/final/dataset/tables/activity/activity.csv', index_col=None, header = 0, iterator = True, chunksize = 1000)
+activity = pd.concat([chunk for chunk in activity_iterator])
+ids = np.unique(df_study_events['uid'].values.ravel()).tolist()
+dflist = []
+for x in ids:
+    df = df_study_events.loc[df_study_events['uid'] == x]
+    ef = activity.loc[activity['uid'] == x]
+    for index, row in df.iterrows():
+        ff = ef.loc[(ef['time'] >= row['event_start']) & (ef['time'] <= row['event_end'])]
+        ff['study_event'] = row['study_event']
+        dflist.append(ff)
+del activity
+gc.collect()
+movement = pd.concat(dflist)
+movement[' activity inference'] = movement[' activity inference'].astype('int')
+calm = movement.groupby(['study_event','uid']).mean()
+calm.reset_index(inplace = True)
+print 'saving study stillness'
+calm.to_csv('/data/final/dataset/tables/study_stillness/study_stillness.csv', index = False)
 
