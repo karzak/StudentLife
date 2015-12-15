@@ -4,6 +4,7 @@ pip install statsmodels
 pip install scipy
 pip install sklearn
 
+mkdir -p /data
 cd /data
 mkdir final
 cd ./final
